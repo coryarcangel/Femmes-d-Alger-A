@@ -1,0 +1,4 @@
+contrast 76
+compress 67
+compress 3
+edge 20

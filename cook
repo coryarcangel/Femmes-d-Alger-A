@@ -1,0 +1,326 @@
+cookFunction(){
+    # Begin Defaults
+    file=spongebob.jpg
+    destination=$(date +"%d-%m-%Y_%H-%M-%S");
+    iterations=5
+    save=1
+    replay=''
+    strength=100
+    recipe_out='recipe.txt'
+    # End Defaults
+
+    #receive command line parameters
+    while [ ! $# -eq 0 ]
+    do
+    case "$1" in
+        -str) strength=$2;;
+        -f) file=$2;;
+        -n) iterations=$2;;
+        -o) destination=$2;;
+        -s) save=$2;;
+        -h) recipe_out=$2;;
+        -r) replay=$2;;
+        -l) last=1;;
+        *) file=$1
+    esac
+    shift
+    done
+
+    strength=$(echo "scale=2; $strength / 100" | bc)
+
+    mkdir -p $destination
+    # if recipe_out file doesnt exist, or the variable is not set create it
+    recipe_out=$destination/$recipe_out
+
+    # if replay, copy the recipe file to the destination
+    if [[ ! -z $replay ]]; then
+        cp $replay $destination
+    fi
+
+    size=$(identify -format "%[fx:w]x%[fx:h]" $file)
+    width=$(echo $size | cut -d'x' -f1)
+    filename="${file%.*}"
+
+    cp "$file" "temp.jpg"
+
+    echo 'cooking file: '$file 'destination: '$destination 'iterations: '$iterations 'size: '$size 'save: '$save
+
+    ### START COOK FUNCTIONS
+    modulate()  {
+        factor=${1:-$((100 + ($RANDOM % 500)))}
+        factor=$(echo "scale=0; (($factor - 100) * $strength + 100)" | bc| awk '{print int($1)}')
+        convert temp.jpg -modulate 100,$factor temp.jpg
+        # if [[ ! -z $strength && $strength -gt 1 ]]; then
+            echo 'modulate '$factor | tee -a $recipe_out
+        # fi
+    }
+    compress() {
+        factor_compress=${1:-$((1 + $RANDOM % 100))}
+        # spread between 100 and 1 depending on strength. the higher the strength, the lower the resulting number
+        factor_compress=$(echo "scale=0; (101 - $factor_compress * $strength)" | bc| awk '{print int($1)}')
+        convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg
+        echo 'convert temp.jpg -compress JPEG2000 -quality '$factor_compress' temp.jpg'
+        # convert temp.jpg -scale $size\! temp.jpg 
+        echo 'compress '$factor_compress | tee -a $recipe_out # echoes the command to $recipe_out and stdout
+    }
+    contrast() {
+        factor=${1:-$((10 + $RANDOM % 200))}
+        factor=$(echo "scale=0; ($factor * $strength)" | bc| awk '{print int($1)}')
+        convert temp.jpg -brightness-contrast 0x$factor temp.jpg
+        echo 'contrast '$factor | tee -a $recipe_out
+    }
+    resize() {
+        factor=${1:-$((1 + $RANDOM % 95 + 5))}
+        # divide this by 100, multiply it times strength, and multiply it times the width of the original image
+        factor=$(echo "scale=2; ($factor / 100  * $width)" | bc)
+        # get factor - size and multiply by strength, then add that to factor
+        factor=$(echo "scale=0; ($factor - $width) * $strength + $width" | bc| awk '{print int($1)}')
+        convert temp.jpg -scale $factor  -scale $size\! temp.jpg
+        echo 'resize '$factor | tee -a $recipe_out
+    }
+    edge(){
+        factor=${1:-$((1 + $RANDOM % 30))}
+        # get factor - 30 and multiply by strength, then add that to factor
+        factor=$(echo "scale=0; ($factor - 30) * $strength + 30" | bc | awk '{print int($1)}')
+        convert temp.jpg -edge $factor temp.jpg
+        echo 'edge '$factor | tee -a $recipe_out
+    }
+    normalize(){
+        convert temp.jpg -normalize temp.jpg
+        echo 'normalize' | tee -a $recipe_out
+    }
+    ### END TRANSFORM FUNCTIONS
+
+    if [[ ! -z $replay ]]; then
+        input=$replay
+        recipe_out=/dev/null
+        i=1
+        while IFS= read -r line || [[ -n "$line" ]]; do
+        # echo -n "$i: "$filename-cooked.jpg / $line
+        $line
+        if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
+            cp "temp.jpg" "$destination/$filename-step-$i.jpg"
+        fi
+        i=$((i+1))
+        done < "$input"
+    else   
+        for (( i = 1; i <= $iterations; i++ )); do
+            printf "%02d-" $i
+            operation=$((0 + $RANDOM % 6)) # Pick a random cook function
+            if [[ $operation = "0" ]];  then modulate
+                elif [[ $operation = "1" ]]; then compress
+                elif [[ $operation = "2" ]]; then contrast
+                elif [[ $operation = "3" ]]; then resize
+                elif [[ $operation = "4" ]]; then edge
+                elif [[ $operation = "5" ]]; then normalize
+            fi
+            if [[  $last -eq 0 ]]; then
+                if [  $(($i % $save)) -eq 0 ]; then  #dump every so often. 
+                    cp "temp.jpg" "$destination/$filename-step-$i.jpg"
+                elif [  $i -eq $iterations]; then
+                    cp "temp.jpg" "$destination/$filename-step-$i.jpg"
+                fi
+            fi
+        done
+    fi
+
+    if [[  $last -eq 1 ]]; then 
+        # if filename has a / in it
+        if [[ $filename == *"/"* ]]; then
+            cp "temp.jpg" $filename"-cooked.jpg"; 
+            else 
+            cp "temp.jpg" $destination/$filename"-cooked.jpg";
+        fi
+    fi
+    rm temp.jpg
+}
+
+cookVideoFunction(){
+    # Begin Defaults
+    vfile=vid.mp4
+    dest=$(date +"%d-%m-%Y_%H-%M-%S");
+    rate=30 #frames per second
+    vreplay=recipe.txt
+    director=''
+    frameCheck=0
+    skip=1
+    # End Defaults
+    while [ ! $# -eq 0 ]; do
+        case "$1" in
+            -f) vfile=$2;;
+            -o) dest=$2;;
+            -fr) rate=$2;;
+            -r) vreplay=$2;;
+            -d) director=$2;;
+            -skip) skip=$2;;
+            -fc) frameCheck=1;;
+            *) vfile=$1
+        esac
+        shift
+    done
+
+    mkdir -p $dest
+    dest=$(realpath $dest)
+
+    vfileName=$(basename $vfile)
+
+    cp $vfile $dest
+    vfile=$(realpath $dest/$vfileName)
+
+    vfilename="${vfile%.*}"
+    # get the name of the recipe file without extension or folders
+    vreplayBasename=$(basename $vreplay)
+    vreplayname="${vreplay%.*}"
+
+    # get total number of frames
+    seconds=$(ffmpeg -i $vfile 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
+    total_frames=$((seconds * rate))  
+
+    if [ $frameCheck -eq 1 ]; then
+        echo "total frames: "$total_frames
+        exit 0
+    fi
+
+    # convert source video into separate frames
+    ffmpeg -i $vfile -r $rate $vfilename%05d.jpg  > /dev/null 2>&1
+    echo 'ffmpeg -i '$vfile' -r '$rate' '$vfilename'%05d.jpg  > /dev/null 2>&1'
+
+    # create a subfolder for the cooked frames
+    mkdir -p $dest/frames
+
+    if [ -z "$director" ]; then #apply the recipe file to each frame
+        if [ ! -f $vreplay ]; then #create a recipe file if it doesnt exist
+            echo "# creating recipe file"
+            cookFunction  -o temp -l spongebob.jpg
+            mv temp/recipe.txt .
+            rm -r temp
+            vreplay=recipe.txt
+        fi
+        currentLocation=$(pwd)
+        vreplayAbsolute=$(realpath $vreplay)
+        cd $dest
+        for frame in $(seq -f "%05g" 1 $total_frames); do
+            # echo "frame "$frame" / "$total_frames", dest: "$vfilename$frame.jpg
+            echo 'cookFunction -r '$vreplayAbsolute' -o . -l '$vfilename$frame'.jpg'
+            cookFunction -r $vreplayAbsolute -o . -l $vfilename$frame.jpg
+        done
+        cd $currentLocation
+    else # director mode
+        # copy director file to destination
+        cp $director $dest
+        directorLines=()
+        # directorPath=$(realpath $director)
+        directorPath=$(echo $director | rev | cut -d'/' -f2- | rev)
+        # real path of the basename of the director file leading up to the filename
+        directorFolderName=$(dirname $director)
+        directorFolder=$(realpath $directorFolderName)
+        # get rid of everything after the last / in the path
+        # directorRelative=$(echo $director | rev | cut -d'/' -f2- | rev)
+        # if direcvtorRelative is empty, set it to .
+        if [[ -z $directorRelative ]]; then
+            directorRelative="."
+        fi
+        # echo all these variables
+        echo "director: "$director
+        echo "directorPath: "$directorPath
+        echo "directorFolderName: "$directorFolderName
+        echo "directorFolder: "$directorFolder
+        # echo "directorRelative: "$directorRelative
+        while IFS= read -r line; do
+            directorLines+=("$line")
+        done < "$director"
+        framesRendered=1
+        cd $dest
+        frame=0
+        for line in "${directorLines[@]}"; do
+            IFS=',' read -r -a array <<< "$line"
+            nextLineFull=${directorLines[$frame+1]}
+            IFS=',' read -r -a nextLine <<< "$nextLineFull"
+            # the frame number is the first element. the second element is the required recipe file.
+            
+            frameNumber=${array[0]}
+            requiredRecipeFile=$(realpath "$directorFolder/${array[1]}")
+            optionalRecipeFile=${array[2]}
+            echo "requiredRecipeFile: $requiredRecipeFile"
+            echo "optionalRecipeFile: $optionalRecipeFile"
+
+            nextFrameNumber=${nextLine[0]}
+            # if nextFrameNumber is blank, use total_frames
+            if [[ -z $nextFrameNumber ]]; then
+                nextFrameNumber=$((total_frames))
+                # requiredRecipeFile=$(realpath "$directorPath/recipe/${array[0]}")
+                # optionalRecipeFile=${array[1]}
+            fi
+            # echo "next line: $nextLineFull, $directorLines[$frame]"
+            echo "$frameNumber-$nextFrameNumber $requiredRecipeFile"
+            # cook file with recipe file
+            for j in $(seq -f "%05g" $framesRendered $nextFrameNumber); do
+                # calculate strength
+                stren=$(echo "scale=2; 100 - ($j / $nextFrameNumber) * 100" | bc | awk '{printf "%d\n", $1}')
+                # if there's not optional file, set strength to 100
+                if [[ -z $optionalRecipeFile ]]; then
+                    stren=100
+                fi
+                echo "frame "$j" / "$total_frames
+                echo 'running: cook -r '$requiredRecipeFile' -o "." -str '$stren' -l '$dest'/'$vfilename''$j'.jpg from pwd: '$PWD
+                echo "keyframe 1 stren: "$stren
+                cookFunction -r $requiredRecipeFile -o "." -str $stren -l $vfilename$j.jpg > /dev/null 2>&1
+                pid=$!
+                wait $pid
+                # if optional recipe file exists, cook with it using calculated strength
+                if [[ ! -z $optionalRecipeFile ]]; then
+                    echo 'running: cook -r '$optionalRecipeFile' -o "." -l '$dest'/'$vfilename''$j'.jpg'
+                    stren=$((100-$stren))
+                    echo "keyframe 2 stren: "$stren
+                    cookFunction -r $(realpath "$directorFolder/${optionalRecipeFile}") -o "." -l -str $stren $vfilename$j-cooked.jpg > /dev/null 2>&1                
+                    pid=$!
+                    wait $pid
+                    mv $vfilename$j-cooked-cooked.jpg $vfilename$j-cooked.jpg
+                fi
+            done
+            framesRendered=$(($nextFrameNumber+1))
+            frame=$((frame+1))
+        done
+    fi
+    cd $dest
+    # smash newly cooked frames into a video (no audio)
+    ffmpeg -y -framerate $rate -pattern_type glob -i "*-cooked*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4  > /dev/null 2>&1
+    # move newly cooked frames to frames subfolder
+    # mv $dest/*-cooked* $dest/frames #old line
+    find $dest -name '*-cooked*' -exec mv {} $dest/frames \;
+    pwd
+    cd ./frames
+    # clean up
+    vreplayname_strip="${vreplayname//\//-}"
+    cd ..; echo 'frames/out.mp4 '$vfilename'-'$vreplayname_strip'-result.mp4'; rm *.jpg; 
+    mv out.mp4 $vfilename-$vreplayname_strip-result.mp4; 
+    # mv $director"/recipe/"$vreplayname'.txt' $vreplayname'.txt';
+    # If there is audio in the source file, this line might help
+    #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
+}
+
+args=$@
+while [ ! $# -eq 0 ]; do
+    case "$1" in
+        -f) file=$2;;
+        *) file=$1
+    esac
+    shift
+done
+
+
+if [[ $file =~ ".mp4" || $file =~ ".mov" || $file =~ ".avi" || $file =~ ".mkv" ]]; then
+    if ! [ -x "$(command -v ffmpeg)" ]; then
+        echo 'Error: ffmpeg is not installed.' >&2
+        exit 1
+    fi
+    cookVideoFunction $args
+elif [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif" ]]; then
+    if ! [ -x "$(command -v convert)" ]; then
+        echo 'Error: imagemagick is not installed.' >&2
+        exit 1
+    fi
+    cookFunction $args
+else
+    echo "file is not a valid image or video file"
+fi

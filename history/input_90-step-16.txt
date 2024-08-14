@@ -1,0 +1,16 @@
+normalize
+normalize
+normalize
+resize 185
+normalize
+compress 77
+normalize
+resize 195
+compress 53
+normalize
+resize 35
+contrast 125
+compress 62
+resize 163
+compress 48
+edge 7

@@ -1,0 +1,14 @@
+1380,history/input_0-step-5.txt
+1920,history/input_64-step-14.txt
+3420,history/input_66-step-4.txt
+4410,history/input_68-step-4.txt
+5460,history/input_70-step-4.txt
+6810,history/input_72-step-28.txt
+7620,history/input_88-step-22.txt
+8358,history/input_90-step-50-2.txt
+8970,history/input_90-step-50-2.txt
+9570,history/input_94-step-30.txt
+9780,history/input_96-step-4.txt
+10500,history/input_94-step-30.txt
+10770,history/input_94-step-30.txt,history/input_0-step-5.txt
+10800,history/input_0-step-5.txt

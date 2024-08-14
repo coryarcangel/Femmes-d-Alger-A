@@ -1,0 +1,4 @@
+contrast 166
+modulate 336
+edge 12
+modulate 254

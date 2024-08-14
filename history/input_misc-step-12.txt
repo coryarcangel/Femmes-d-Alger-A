@@ -1,0 +1,100 @@
+edge 21
+resize 281
+edge 14
+edge 12
+contrast 104
+compress 47
+modulate 373
+contrast 56
+resize 64
+modulate 132
+edge 10
+modulate 229
+edge 19
+modulate 449
+compress 29
+edge 14
+modulate 383
+resize 102
+modulate 199
+normalize
+compress 45
+normalize
+normalize
+compress 56
+edge 20
+normalize
+modulate 550
+compress 86
+edge 2
+modulate 282
+modulate 334
+compress 81
+compress 1
+edge 29
+edge 11
+contrast 203
+modulate 561
+resize 163
+resize 80
+normalize
+compress 45
+edge 20
+compress 68
+modulate 500
+resize 35
+modulate 381
+resize 172
+edge 12
+edge 25
+contrast 95
+modulate 502
+compress 28
+normalize
+modulate 374
+normalize
+contrast 54
+contrast 117
+resize 54
+modulate 262
+normalize
+compress 92
+modulate 425
+edge 28
+compress 97
+normalize
+resize 83
+modulate 474
+edge 13
+modulate 558
+normalize
+modulate 103
+resize 121
+normalize
+resize 51
+compress 10
+normalize
+edge 17
+contrast 190
+edge 9
+normalize
+normalize
+resize 64
+contrast 154
+resize 54
+compress 25
+normalize
+resize 32
+modulate 561
+modulate 203
+resize 28
+resize 35
+normalize
+modulate 416
+resize 211
+modulate 213
+modulate 288
+edge 17
+modulate 447
+edge 15
+modulate 296

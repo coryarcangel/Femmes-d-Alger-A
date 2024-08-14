@@ -1,0 +1,8 @@
+compress 12
+contrast 70
+modulate 242
+modulate 301
+contrast 194
+resize 278
+resize 1467
+edge 29

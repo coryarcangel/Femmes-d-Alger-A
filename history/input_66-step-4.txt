@@ -1,0 +1,4 @@
+resize 195
+edge 27
+contrast 62
+edge 9

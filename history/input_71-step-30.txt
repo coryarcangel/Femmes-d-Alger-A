@@ -1,0 +1,30 @@
+modulate 222
+contrast 181
+compress 45
+normalize
+resize 288
+resize 224
+normalize
+modulate 108
+resize 124
+resize 201
+normalize
+resize 144
+normalize
+compress 38
+resize 268
+contrast 159
+compress 81
+compress 99
+resize 188
+normalize
+edge 8
+normalize
+resize 89
+modulate 257
+normalize
+normalize
+compress 21
+resize 44
+compress 87
+edge 10

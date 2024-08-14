@@ -1,0 +1,4 @@
+compress 49
+resize 281
+edge 25
+edge 14

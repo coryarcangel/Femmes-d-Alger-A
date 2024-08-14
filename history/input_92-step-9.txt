@@ -1,0 +1,9 @@
+edge 29
+edge 12
+modulate 221
+modulate 588
+normalize
+edge 24
+resize 268
+edge 13
+compress 48

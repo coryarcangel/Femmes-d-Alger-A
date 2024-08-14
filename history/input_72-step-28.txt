@@ -1,0 +1,28 @@
+edge 8
+contrast 91
+modulate 368
+resize 134
+edge 18
+contrast 208
+contrast 193
+contrast 13
+resize 185
+contrast 28
+resize 35
+contrast 35
+contrast 55
+normalize
+edge 10
+normalize
+contrast 83
+contrast 27
+contrast 11
+modulate 586
+resize 140
+normalize
+edge 14
+modulate 288
+compress 21
+modulate 399
+edge 16
+normalize
