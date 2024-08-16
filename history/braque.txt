@@ -1,5 +1,0 @@
-contrast 142
-edge 27
-normalize
-compress 17
-normalize

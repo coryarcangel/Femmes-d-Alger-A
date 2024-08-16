@@ -1,5 +1,0 @@
-compress 79
-normalize
-modulate 498
-modulate 504
-modulate 374
