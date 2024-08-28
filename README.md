@@ -1,1 +1,1 @@
-Media 4 an immersive Picasso installation ;-)
+Media made in Cookery™ 4 an immersive Picasso installation ;-)
